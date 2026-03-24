@@ -36,12 +36,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Nav />
         {children}
-        <footer
-          className="border-t py-6 text-center text-xs font-mono"
-          style={{ borderColor: "var(--border)", color: "var(--muted)" }}
-        >
-          © {new Date().getFullYear()} Danilo Correia. All rights reserved.
-        </footer>
       </body>
     </html>
   );

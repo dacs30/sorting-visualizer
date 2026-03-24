@@ -84,6 +84,13 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <footer
+        className="border-t py-6 text-center text-xs font-mono"
+        style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+      >
+        © {new Date().getFullYear()} Danilo Correia. All rights reserved.
+      </footer>
     </main>
   );
 }
