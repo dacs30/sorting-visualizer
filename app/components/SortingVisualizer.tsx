@@ -145,50 +145,7 @@ export default function SortingVisualizer() {
 
   // ── render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="h-screen flex flex-col bg-[#f5f5f0] text-[#1a1a1a] overflow-hidden">
-
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-        className="flex-shrink-0 border-b border-[#ddddd4] px-5 sm:px-8 py-3 sm:py-4
-                   bg-[#f5f5f0]/90 backdrop-blur-md z-10 flex items-center gap-4"
-      >
-        <div className="flex-1 min-w-0">
-          <h1 className="font-serif text-lg sm:text-2xl font-semibold text-[#1a1a1a] leading-tight truncate">
-            Sorting Visualizer
-          </h1>
-          <p className="text-[#6b6b60] text-xs mt-0.5 hidden sm:block">
-            Watch algorithms sort in real time — and understand how they work
-          </p>
-        </div>
-
-        <AnimatePresence>
-          {(isRunning || isDone) && (
-            <motion.div
-              key="status"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
-              className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full
-                         bg-white border border-[#ddddd4] shadow-sm text-xs"
-            >
-              {isRunning ? (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#b89020] animate-pulse" />
-                  <span className="text-[#b89020] font-medium">{progress}%</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3a9a50]" />
-                  <span className="text-[#3a9a50] font-medium">Sorted</span>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.header>
+    <div className="flex flex-col bg-[#f5f5f0] text-[#1a1a1a] overflow-hidden" style={{ height: 'calc(100vh - 3.5rem)' }}>
 
       {/* Body */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0">
@@ -201,6 +158,32 @@ export default function SortingVisualizer() {
                      dot-pattern bg-[#f5f5f0]
                      p-4 sm:p-5 flex flex-col min-h-0 relative overflow-hidden"
         >
+          {/* Status badge — top-right */}
+          <AnimatePresence>
+            {(isRunning || isDone) && (
+              <motion.div
+                key="status"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full
+                           bg-white border border-[#ddddd4] shadow-sm text-xs"
+              >
+                {isRunning ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#b89020] animate-pulse" />
+                    <span className="text-[#b89020] font-medium">{progress}%</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#3a9a50]" />
+                    <span className="text-[#3a9a50] font-medium">Sorted</span>
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Subtle warm radial glow at base */}
           <div className="absolute inset-x-0 bottom-0 h-24
                           bg-gradient-to-t from-[#7a6248]/6 to-transparent pointer-events-none" />
