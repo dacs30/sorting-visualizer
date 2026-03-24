@@ -11,16 +11,7 @@ import {
   toSVG, fmt, DEG, RAD,
 } from "../lib/linearAlgebra";
 
-// ── Palette ───────────────────────────────────────────────────────────────────
-
-const C = {
-  primary:  "#7a6248",
-  blue:     "#3b90cc",
-  orange:   "#c86030",
-  green:    "#3a9a50",
-  purple:   "#a090c8",
-  gold:     "#b89020",
-} as const;
+import { palette as C } from "../lib/colors";
 
 // ── Topic list ────────────────────────────────────────────────────────────────
 

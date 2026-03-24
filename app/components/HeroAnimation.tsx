@@ -3,49 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { algorithmFunctions, algorithmInfo, type SortStep } from "../lib/algorithms";
+import { sortColors } from "../lib/colors";
+import { generateArray, barColor } from "../lib/sortingUtils";
 
-const C = {
-  unsorted:  "#a090c8",
-  comparing: "#3b90cc",
-  swapping:  "#c86030",
-  sorted:    "#3a9a50",
-} as const;
-
-const ALGORITHMS = ["bubble", "merge", "quick", "insertion", "selection", "heap"];
+const ALGORITHMS = Object.keys(algorithmInfo);
 const N = 14;
 const STEP_MS = 60;
 const PAUSE_MS = 1200;
 
-function generateArray(): number[] {
-  return Array.from({ length: N }, (_, i) => Math.round(10 + (i / (N - 1)) * 86))
-    .sort(() => Math.random() - 0.5);
-}
-
-function barColor(i: number, step: SortStep): string {
-  if (step.sorted.includes(i))    return C.sorted;
-  if (step.swapping.includes(i))  return C.swapping;
-  if (step.pivot === i)           return C.swapping;
-  if (step.comparing.includes(i)) return C.comparing;
-  return C.unsorted;
-}
-
 export default function HeroAnimation() {
-  const [bars, setBars]   = useState<number[]>(() => generateArray());
-  const [step, setStep]   = useState<SortStep | null>(null);
-  const [label, setLabel] = useState(algorithmInfo["bubble"].name);
+  const [bars, setBars]       = useState<number[]>(() => generateArray(N, 10, 96));
+  const [step, setStep]       = useState<SortStep | null>(null);
+  const [label, setLabel]     = useState(algorithmInfo["bubble"].name);
 
-  // All mutable loop state lives in refs to avoid stale closures
-  const valueToId   = useRef<Map<number, number>>(new Map());
   const stepsRef    = useRef<SortStep[]>([]);
   const stepIdxRef  = useRef(0);
   const algoIdxRef  = useRef(0);
   const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function initValueMap(arr: number[]) {
-    const m = new Map<number, number>();
-    arr.forEach((v, i) => m.set(v, i));
-    valueToId.current = m;
-  }
 
   function tick() {
     timerRef.current = setTimeout(() => {
@@ -53,14 +27,12 @@ export default function HeroAnimation() {
       const steps = stepsRef.current;
 
       if (i >= steps.length) {
-        // Sort complete — pause then restart with next algorithm
         timerRef.current = setTimeout(() => {
           const nextAlgoIdx = (algoIdxRef.current + 1) % ALGORITHMS.length;
           algoIdxRef.current = nextAlgoIdx;
           const algoKey = ALGORITHMS[nextAlgoIdx];
 
-          const nextArr = generateArray();
-          initValueMap(nextArr);
+          const nextArr = generateArray(N, 10, 96);
           stepsRef.current = algorithmFunctions[algoKey](nextArr);
           stepIdxRef.current = 0;
 
@@ -73,17 +45,6 @@ export default function HeroAnimation() {
       }
 
       const s = steps[i];
-      // Keep valueToId in sync with swaps so bar DOM identity follows value
-      if (s.swapping.length === 2) {
-        const [a, b] = s.swapping;
-        const idA = valueToId.current.get(s.array[a]);
-        const idB = valueToId.current.get(s.array[b]);
-        if (idA !== undefined && idB !== undefined) {
-          valueToId.current.set(s.array[a], idB);
-          valueToId.current.set(s.array[b], idA);
-        }
-      }
-
       setBars([...s.array]);
       setStep(s);
       stepIdxRef.current = i + 1;
@@ -92,9 +53,8 @@ export default function HeroAnimation() {
   }
 
   useEffect(() => {
-    const arr = generateArray();
+    const arr = generateArray(N, 10, 96);
     const algoKey = ALGORITHMS[0];
-    initValueMap(arr);
     stepsRef.current = algorithmFunctions[algoKey](arr);
     stepIdxRef.current = 0;
     algoIdxRef.current = 0;
@@ -107,6 +67,12 @@ export default function HeroAnimation() {
   }, []);
 
   const maxVal = Math.max(...bars);
+
+  // Build highlight sets from the current step
+  const comparing = new Set(step?.comparing ?? []);
+  const swapping  = new Set(step?.swapping ?? []);
+  const sorted    = new Set(step?.sorted ?? []);
+  const pivot     = step?.pivot;
 
   return (
     <div
@@ -129,10 +95,10 @@ export default function HeroAnimation() {
       {/* Bars */}
       <div className="flex items-end gap-[3px]" style={{ height: 140 }}>
         <LayoutGroup id="hero-bars">
-          {bars.map((val) => {
-            const id = valueToId.current.get(val) ?? val;
+          {bars.map((val, pos) => {
+            const id = step?.ids?.[pos] ?? pos;
             const heightPct = (val / maxVal) * 100;
-            const color = step ? barColor(bars.indexOf(val), step) : C.unsorted;
+            const color = barColor(pos, comparing, swapping, sorted, pivot);
             return (
               <motion.div
                 key={id}
@@ -158,7 +124,7 @@ export default function HeroAnimation() {
       <div className="flex items-center gap-3 flex-wrap">
         {(["comparing", "swapping", "sorted"] as const).map((k) => (
           <div key={k} className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-sm" style={{ background: C[k] }} />
+            <span className="w-2 h-2 rounded-sm" style={{ background: sortColors[k] }} />
             <span className="text-[10px] font-mono capitalize" style={{ color: "var(--muted)" }}>
               {k}
             </span>

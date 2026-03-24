@@ -17,15 +17,7 @@ import {
   randomWeights, forwardPass, type NNWeights, type NNActivations, type ActivationFn,
 } from "../lib/mlAlgorithms";
 
-// ─── Color palette ────────────────────────────────────────────────────────────
-const C = {
-  primary:   "#7a6248",
-  blue:      "#3b90cc",
-  orange:    "#c86030",
-  green:     "#3a9a50",
-  purple:    "#a090c8",
-  gold:      "#b89020",
-} as const;
+import { palette as C } from "../lib/colors";
 
 const CLUSTER_COLORS = [C.blue, C.purple, C.orange, C.green, C.gold];
 

@@ -1,5 +1,6 @@
 export type SortStep = {
   array: number[];
+  ids: number[];
   comparing: number[];
   swapping: number[];
   sorted: number[];
@@ -112,16 +113,18 @@ export const algorithmInfo: Record<string, AlgorithmInfo> = {
 function addStep(
   steps: SortStep[],
   array: number[],
+  ids: number[],
   comparing: number[],
   swapping: number[],
   sorted: number[],
   pivot?: number
 ) {
-  steps.push({ array: [...array], comparing, swapping, sorted: [...sorted], pivot });
+  steps.push({ array: [...array], ids: [...ids], comparing, swapping, sorted: [...sorted], pivot });
 }
 
 export function bubbleSortSteps(input: number[]): SortStep[] {
   const arr = [...input];
+  const ids = arr.map((_, i) => i);
   const steps: SortStep[] = [];
   const sorted: number[] = [];
   const n = arr.length;
@@ -129,24 +132,26 @@ export function bubbleSortSteps(input: number[]): SortStep[] {
   for (let i = 0; i < n - 1; i++) {
     let swapped = false;
     for (let j = 0; j < n - 1 - i; j++) {
-      addStep(steps, arr, [j, j + 1], [], sorted);
+      addStep(steps, arr, ids, [j, j + 1], [], sorted);
       if (arr[j] > arr[j + 1]) {
         [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-        addStep(steps, arr, [], [j, j + 1], sorted);
+        [ids[j], ids[j + 1]] = [ids[j + 1], ids[j]];
+        addStep(steps, arr, ids, [], [j, j + 1], sorted);
         swapped = true;
       }
     }
     sorted.unshift(n - 1 - i);
-    addStep(steps, arr, [], [], sorted);
+    addStep(steps, arr, ids, [], [], sorted);
     if (!swapped) break;
   }
   if (!sorted.includes(0)) sorted.unshift(0);
-  addStep(steps, arr, [], [], Array.from({ length: n }, (_, i) => i));
+  addStep(steps, arr, ids, [], [], Array.from({ length: n }, (_, i) => i));
   return steps;
 }
 
 export function selectionSortSteps(input: number[]): SortStep[] {
   const arr = [...input];
+  const ids = arr.map((_, i) => i);
   const steps: SortStep[] = [];
   const sorted: number[] = [];
   const n = arr.length;
@@ -154,46 +159,52 @@ export function selectionSortSteps(input: number[]): SortStep[] {
   for (let i = 0; i < n - 1; i++) {
     let minIdx = i;
     for (let j = i + 1; j < n; j++) {
-      addStep(steps, arr, [minIdx, j], [], sorted);
+      addStep(steps, arr, ids, [minIdx, j], [], sorted);
       if (arr[j] < arr[minIdx]) minIdx = j;
     }
     if (minIdx !== i) {
       [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
-      addStep(steps, arr, [], [i, minIdx], sorted);
+      [ids[i], ids[minIdx]] = [ids[minIdx], ids[i]];
+      addStep(steps, arr, ids, [], [i, minIdx], sorted);
     }
     sorted.push(i);
-    addStep(steps, arr, [], [], sorted);
+    addStep(steps, arr, ids, [], [], sorted);
   }
-  addStep(steps, arr, [], [], Array.from({ length: n }, (_, i) => i));
+  addStep(steps, arr, ids, [], [], Array.from({ length: n }, (_, i) => i));
   return steps;
 }
 
 export function insertionSortSteps(input: number[]): SortStep[] {
   const arr = [...input];
+  const ids = arr.map((_, i) => i);
   const steps: SortStep[] = [];
   const sorted: number[] = [0];
   const n = arr.length;
 
   for (let i = 1; i < n; i++) {
     const key = arr[i];
+    const keyId = ids[i];
     let j = i - 1;
-    addStep(steps, arr, [i], [], sorted);
+    addStep(steps, arr, ids, [i], [], sorted);
     while (j >= 0 && arr[j] > key) {
-      addStep(steps, arr, [j, j + 1], [], sorted);
+      addStep(steps, arr, ids, [j, j + 1], [], sorted);
       arr[j + 1] = arr[j];
-      addStep(steps, arr, [], [j, j + 1], sorted);
+      ids[j + 1] = ids[j];
+      addStep(steps, arr, ids, [], [j, j + 1], sorted);
       j--;
     }
     arr[j + 1] = key;
+    ids[j + 1] = keyId;
     sorted.push(i);
-    addStep(steps, arr, [], [], sorted);
+    addStep(steps, arr, ids, [], [], sorted);
   }
-  addStep(steps, arr, [], [], Array.from({ length: n }, (_, i) => i));
+  addStep(steps, arr, ids, [], [], Array.from({ length: n }, (_, i) => i));
   return steps;
 }
 
 export function mergeSortSteps(input: number[]): SortStep[] {
   const arr = [...input];
+  const ids = arr.map((_, i) => i);
   const steps: SortStep[] = [];
   const sorted: number[] = [];
   const n = arr.length;
@@ -201,25 +212,35 @@ export function mergeSortSteps(input: number[]): SortStep[] {
   function merge(left: number, mid: number, right: number) {
     const leftArr = arr.slice(left, mid + 1);
     const rightArr = arr.slice(mid + 1, right + 1);
+    const leftIds = ids.slice(left, mid + 1);
+    const rightIds = ids.slice(mid + 1, right + 1);
     let i = 0, j = 0, k = left;
 
     while (i < leftArr.length && j < rightArr.length) {
-      addStep(steps, arr, [left + i, mid + 1 + j], [], sorted);
+      addStep(steps, arr, ids, [left + i, mid + 1 + j], [], sorted);
       if (leftArr[i] <= rightArr[j]) {
-        arr[k] = leftArr[i++];
+        arr[k] = leftArr[i];
+        ids[k] = leftIds[i];
+        i++;
       } else {
-        arr[k] = rightArr[j++];
+        arr[k] = rightArr[j];
+        ids[k] = rightIds[j];
+        j++;
       }
-      addStep(steps, arr, [], [k], sorted);
+      addStep(steps, arr, ids, [], [k], sorted);
       k++;
     }
     while (i < leftArr.length) {
-      arr[k++] = leftArr[i++];
-      addStep(steps, arr, [], [k - 1], sorted);
+      arr[k] = leftArr[i];
+      ids[k] = leftIds[i];
+      k++; i++;
+      addStep(steps, arr, ids, [], [k - 1], sorted);
     }
     while (j < rightArr.length) {
-      arr[k++] = rightArr[j++];
-      addStep(steps, arr, [], [k - 1], sorted);
+      arr[k] = rightArr[j];
+      ids[k] = rightIds[j];
+      k++; j++;
+      addStep(steps, arr, ids, [], [k - 1], sorted);
     }
   }
 
@@ -233,12 +254,13 @@ export function mergeSortSteps(input: number[]): SortStep[] {
   }
 
   mergeSort(0, n - 1);
-  addStep(steps, arr, [], [], Array.from({ length: n }, (_, i) => i));
+  addStep(steps, arr, ids, [], [], Array.from({ length: n }, (_, i) => i));
   return steps;
 }
 
 export function quickSortSteps(input: number[]): SortStep[] {
   const arr = [...input];
+  const ids = arr.map((_, i) => i);
   const steps: SortStep[] = [];
   const sorted: number[] = [];
   const n = arr.length;
@@ -248,15 +270,17 @@ export function quickSortSteps(input: number[]): SortStep[] {
     let i = low - 1;
 
     for (let j = low; j < high; j++) {
-      addStep(steps, arr, [j, high], [], sorted, high);
+      addStep(steps, arr, ids, [j, high], [], sorted, high);
       if (arr[j] < pivot) {
         i++;
         [arr[i], arr[j]] = [arr[j], arr[i]];
-        addStep(steps, arr, [], [i, j], sorted, high);
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        addStep(steps, arr, ids, [], [i, j], sorted, high);
       }
     }
     [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
-    addStep(steps, arr, [], [i + 1, high], sorted, i + 1);
+    [ids[i + 1], ids[high]] = [ids[high], ids[i + 1]];
+    addStep(steps, arr, ids, [], [i + 1, high], sorted, i + 1);
     sorted.push(i + 1);
     return i + 1;
   }
@@ -272,12 +296,13 @@ export function quickSortSteps(input: number[]): SortStep[] {
   }
 
   quickSort(0, n - 1);
-  addStep(steps, arr, [], [], Array.from({ length: n }, (_, i) => i));
+  addStep(steps, arr, ids, [], [], Array.from({ length: n }, (_, i) => i));
   return steps;
 }
 
 export function heapSortSteps(input: number[]): SortStep[] {
   const arr = [...input];
+  const ids = arr.map((_, i) => i);
   const steps: SortStep[] = [];
   const sorted: number[] = [];
   const n = arr.length;
@@ -287,13 +312,14 @@ export function heapSortSteps(input: number[]): SortStep[] {
     const left = 2 * root + 1;
     const right = 2 * root + 2;
 
-    addStep(steps, arr, [root, left < size ? left : root], [], sorted);
+    addStep(steps, arr, ids, [root, left < size ? left : root], [], sorted);
     if (left < size && arr[left] > arr[largest]) largest = left;
     if (right < size && arr[right] > arr[largest]) largest = right;
 
     if (largest !== root) {
       [arr[root], arr[largest]] = [arr[largest], arr[root]];
-      addStep(steps, arr, [], [root, largest], sorted);
+      [ids[root], ids[largest]] = [ids[largest], ids[root]];
+      addStep(steps, arr, ids, [], [root, largest], sorted);
       heapify(size, largest);
     }
   }
@@ -302,12 +328,13 @@ export function heapSortSteps(input: number[]): SortStep[] {
 
   for (let i = n - 1; i > 0; i--) {
     [arr[0], arr[i]] = [arr[i], arr[0]];
+    [ids[0], ids[i]] = [ids[i], ids[0]];
     sorted.push(i);
-    addStep(steps, arr, [], [0, i], sorted);
+    addStep(steps, arr, ids, [], [0, i], sorted);
     heapify(i, 0);
   }
   sorted.push(0);
-  addStep(steps, arr, [], [], Array.from({ length: n }, (_, i) => i));
+  addStep(steps, arr, ids, [], [], Array.from({ length: n }, (_, i) => i));
   return steps;
 }
 

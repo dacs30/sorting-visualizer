@@ -3,38 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { algorithmInfo, algorithmFunctions, type SortStep } from "../lib/algorithms";
+import { sortColors } from "../lib/colors";
+import { generateArray, barColor } from "../lib/sortingUtils";
 import AlgorithmDiagram from "./AlgorithmDiagram";
 
 const ALGORITHMS = Object.keys(algorithmInfo);
-
-// Light-theme bar palette
-const C = {
-  unsorted:  "#a090c8",
-  comparing: "#3b90cc",
-  swapping:  "#c86030",
-  pivot:     "#b89020",
-  sorted:    "#3a9a50",
-} as const;
-
-// Generate N unique heights evenly spread across [8, 96]
-function generateArray(size: number): number[] {
-  return Array.from({ length: size }, (_, i) => Math.round(8 + (i / (size - 1)) * 88))
-    .sort(() => Math.random() - 0.5);
-}
-
-function barColor(
-  i: number,
-  comparing: Set<number>,
-  swapping: Set<number>,
-  sorted: Set<number>,
-  pivot: number | undefined,
-): string {
-  if (sorted.has(i))    return C.sorted;
-  if (swapping.has(i))  return C.swapping;
-  if (pivot === i)      return C.pivot;
-  if (comparing.has(i)) return C.comparing;
-  return C.unsorted;
-}
 
 // ─── tiny sub-components ──────────────────────────────────────────────────────
 
@@ -68,9 +41,6 @@ export default function SortingVisualizer() {
   const [isDone, setIsDone]           = useState(false);
   const [stepIndex, setStepIndex]     = useState(0);
 
-  // Stable ID per value: valueToId[value] = original index (unique values ⇒ 1-to-1)
-  const valueToId = useRef<Map<number, number>>(new Map());
-
   const stepsRef     = useRef<SortStep[]>([]);
   const intervalRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunningRef = useRef(false);
@@ -82,10 +52,6 @@ export default function SortingVisualizer() {
     if (intervalRef.current) clearTimeout(intervalRef.current);
     isRunningRef.current = false;
     const arr = newArr ?? generateArray(arraySize);
-    // Rebuild the value→id map
-    const m = new Map<number, number>();
-    arr.forEach((v, i) => m.set(v, i));
-    valueToId.current = m;
     setArray(arr);
     setCurrentStep(null);
     setIsRunning(false);
@@ -213,7 +179,7 @@ export default function SortingVisualizer() {
           <LayoutGroup>
             <div className="flex-1 flex items-end gap-px min-h-0 relative z-10">
               {displayArray.map((val, pos) => {
-                const id    = valueToId.current.get(val) ?? pos;
+                const id    = currentStep?.ids?.[pos] ?? pos;
                 const color = barColor(pos, comparing, swapping, sorted, pivot);
                 const hPct  = (val / maxVal) * 100;
                 const isActive = comparing.has(pos) || swapping.has(pos) || pivot === pos;
@@ -355,11 +321,11 @@ export default function SortingVisualizer() {
           <div className="p-4 sm:p-6 border-b border-[#ddddd4]">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-[#6b6b60] mb-3">Legend</p>
             <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-2 gap-y-2.5 gap-x-4">
-              <Dot color={C.unsorted}  label="Unsorted"  />
-              <Dot color={C.comparing} label="Comparing" />
-              <Dot color={C.swapping}  label="Swapping"  />
-              <Dot color={C.pivot}     label="Pivot"     />
-              <Dot color={C.sorted}    label="Sorted"    />
+              <Dot color={sortColors.unsorted}  label="Unsorted"  />
+              <Dot color={sortColors.comparing} label="Comparing" />
+              <Dot color={sortColors.swapping}  label="Swapping"  />
+              <Dot color={sortColors.pivot}     label="Pivot"     />
+              <Dot color={sortColors.sorted}    label="Sorted"    />
             </div>
           </div>
 

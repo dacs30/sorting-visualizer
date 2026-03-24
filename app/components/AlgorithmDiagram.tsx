@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, LayoutGroup } from "framer-motion";
-
-const C = {
-  bar:     "#a090c8",
-  sorted:  "#3a9a50",
-  compare: "#3b90cc",
-  swap:    "#c86030",
-  pivot:   "#b89020",
-  left:    "#4a80c4",
-  right:   "#8060b0",
-};
+import { diagramColors as C } from "../lib/colors";
 
 function usePhase(phases: { id: string; ms: number }[]) {
   const [i, setI] = useState(0);
